@@ -81,7 +81,7 @@ export default class Game extends React.Component {
   handleCallback() {}
 
   render() {
-    console.log(this.props.data);
+    console.log(this.props);
     return <div>GAME</div>;
     /*
     return (

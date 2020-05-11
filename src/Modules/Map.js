@@ -1,3 +1,5 @@
+import React from "react";
+
 const SMALLBLOCK = 10;
 
 /*
@@ -12,29 +14,7 @@ const BUILDING = 0x0100;
 
 const PLAYER_NEUTRAL = 0x00;
 
-/*
 
-map struct {
-
-  type; 'water','land','forest'... (int)
-  orientation: 'S','N','NW' ... (int)
-  construction {
-    type: 'city','tower','ruins'.. (int)
-    tribe: ... (int)
-    level: 1..100 (int)
-  }
-
-}
-
-mask map stucture 
-{
-  visible: true, false (boolean)
-  fog: true, false (boolean)
-  construction: {... map struture }
-
-}
-
-*/
 
 class mapTools {
   // create array
@@ -328,245 +308,7 @@ class screenIso extends mapTools {
   }
 }
 
-class map {
-  // create map instance
-  constructor(maparray) {
-    this._map = [];
-    for (var y = 0; y < maparray.length; y++) {
-      var a = [];
-      for (var x = 0; x < maparray[0].length; x++) {
-        a.push({
-          type: maparray[y][x],
-          orientation: 0,
-          construction: null
-        });
-      }
-      this._map.push(a);
-    }
-  }
-
-  get map() {
-    return this._map;
-  }
-
-  // return map position data
-  position(pos) {
-    return this._map[pos.y][pos.x];
-  }
-
-  // create mask array
-  createMask() {
-    var maskarray = [];
-  }
-
-  // create if it does not exist and mask
-  mask(maskarray) {}
-
-  // unmask selected positions
-  unmask(maskarray, pos, range) {
-    var nbg = [pos];
-    nbg.push({ x: pos.x + 1, y: pos.y });
-    nbg.push({ x: pos.x - 1, y: pos.y + 1 });
-    nbg.push({ x: pos.x, y: pos.y + 1 });
-    nbg.push({ x: pos.x - 1, y: pos.y });
-    nbg.push({ x: pos.x + 1, y: pos.y - 1 });
-    nbg.push({ x: pos.x, y: pos.y - 1 });
-
-    for (var p of nbg) {
-      if (!maskarray[p.y][p.x].visible) {
-        maskarray[p.y][p.x].visible = true;
-        maskarray[p.y][p.x].fog = false;
-        maskarray[p.y][p.x].map = {
-          type: array[p.y][p.x].type,
-          orientation: array[p.y][p.x].orientation,
-          construction: { ...array[p.y][p.x] }
-        };
-      }
-      if (range > 1)
-        //&& p.x !== pos.x && p.y !== pos.y)
-        this.mask(array, maskarray, p, range - 1);
-    }
-  }
-
-  //TODO: falta procurar exercito inimigo
-  // check if element in range
-  check(array, pos, match, range) {
-    var minx = pos.x - range >= 0 ? pos.x - range : 0;
-    var miny = pos.y - range >= 0 ? pos.y - range : 0;
-    var maxx =
-      pos.x + range < array[0].length ? pos.x + range : array[0].length - 1;
-    var maxy = pos.y + range < array.length ? pos.y + range : array.length - 1;
-
-    // create floating
-    var floatminx = minx;
-    var floatmaxx = maxx - range;
-    // check if exists any
-    for (var y = miny; y < maxy; y++) {
-      for (var x = minx; x < maxx; x++) {
-        if (
-          x >= floatminx &&
-          x < floatmaxx &&
-          match.includes(array[y][x].value)
-        )
-          return true;
-      }
-      if (x < pos.x) floatmaxx++;
-      else floatminx++;
-    }
-    return false;
-  }
-
-  // return a random position within radius
-  random(array, quadrant, matchtypeof, unmatchtypeof, radius, attempts = 100) {
-    // random position in quadrant
-    for (var k = 0; k < attempts; k++) {
-      var index = Math.trunc(Math.random() * quadrant.width * quadrant.heigth);
-      var x = quadrant.x + Math.trunc(index % quadrant.width);
-      var y = quadrant.y + Math.trunc(index / quadrant.width);
-      // select if position match selection and unmatch radius
-      if (
-        matchtypeof.includes(array[y][x].type) &&
-        !this.check(array, { x: x, y: y }, unmatchtypeof, radius)
-      )
-        return { x: x, y: y };
-    }
-    return null;
-  }
-
-  // return neighbours
-  neighbours(array, pos, match) {
-    return (
-      (match.includes(array[pos.x][pos.y - 1]) ? 0x01 : 0) +
-        (match.includes(array[pos.x + 1][pos.y - 1]) ? 0x02 : 0) +
-        (match.includes(array[pos.x + 1][pos.y]) ? 0x04 : 0) +
-        (match.includes(array[pos.x][pos.y + 1]) ? 0x08 : 0) +
-        (match.includes(array[pos.x - 1][pos.y + 1]) ? 0x10 : 0),
-      match.includes(array[pos.x - 1][pos.y]) ? 0x20 : 0
-    );
-  }
-
-  // display on canvas
-  display(canvas, terrain, iconsize, map, mask, pos, zoom) {
-    // calculate screen max width and heigth
-    var screenMaxY =
-      Math.ceil((2 * canvas.height()) / (1.5 * iconsize.height * zoom)) + 1;
-    var screenMaxX = Math.ceil(canvas.width() / (iconsize.width * zoom));
-
-    // calculate x offset at y=0
-    //var screenOffsetx = Math.ceil(screenMaxX * 0.5 * Math.sqrt(3));
-
-    // calculate initial map positions
-    //var imapx = pos.x + Math.round((screenMaxX + 1 ) * 0.5 - screenMaxX * 0.5 - 1/zoom) - 2;
-    //var imapx = 1
-    //var imapy = pos.y - Math.round((screenMaxY - 1) * 0.5);
-
-    var p = this.position(canvas, iconsize, pos, zoom);
-    var imapx = p.x;
-    var imapy = p.y;
-
-    // loop through y map
-    for (var y = 0; y < screenMaxY; y++) {
-      // define screen positions
-      var posy =
-        y * zoom * iconsize.height * 0.75 - zoom * iconsize.height * 0.5;
-      // loop through x map
-      for (var x = y + 1 - screenMaxX; x < y + screenMaxX + 2; x++) {
-        // if inside canvas
-        if (x >= 0 && y >= 0) {
-          // calculate x position on canvas
-          var posx = (x - (y + 1) * 0.5) * zoom * iconsize.width;
-          // if inside map array
-          if (
-            x + imapx >= 0 &&
-            x + imapx < map[0].length &&
-            y + imapy >= 0 &&
-            y + imapy < map.length
-          ) {
-            // print map tile
-            terrain
-              .icon(map[y + imapy][x + imapx].type)
-              .draw(posx, posy, false, zoom);
-          } else {
-            // print unknown
-            terrain.icon(0).draw(posx, posy, false, zoom);
-          }
-        }
-      }
-      // decrement offset
-      imapx--;
-    }
-  }
-
-  // define position screen zero on map
-  whereis(canvas, iconsize, pos, zoom) {
-    // calculate screen max width and heigth
-    var screenMaxY =
-      Math.ceil((2 * canvas.height()) / (1.5 * iconsize.height * zoom)) + 1;
-    var screenMaxX = Math.ceil(canvas.width() / (iconsize.width * zoom));
-
-    // calculate initial map positions (45º => 0.5 60º => ..)
-    var y = pos.y - Math.round((screenMaxY - 1) * 0.5);
-    var x =
-      pos.x - Math.round(screenMaxX - (screenMaxY * 0.25 + screenMaxX * 0.5));
-
-    return { x: x, y: y };
-  }
-
-  mouse(iconsize, zero, mouse, zoom) {
-    // calculate x position
-    var y =
-      1 +
-      Math.floor(
-        (mouse.y - iconsize.height * zoom * 0.5) /
-          (iconsize.height * zoom * 0.5 * 1.5)
-      );
-    // calculate y position
-    var x = Math.floor(
-      (mouse.x + (y & 0x01 ? 0 : iconsize.width * zoom * 0.5)) /
-        (iconsize.width * zoom)
-    );
-
-    var xoffset = zero.x + Math.round(x - y * 0.5);
-    var yoffset = zero.y + y;
-    //console.log(Math.round(x - (y * 0.5)))
-    //console.log("Zero: (" + zero.x + "," + zero.y + ") center: (" + center.x + "," + center.y + ")");
-    //console.log("mouse: " + x + "," + y + "  offset: " + xoffset + "," + yoffset)
-    //console.log("offset: " + xoffset + "," + yoffset )
-
-    //var newpos = this.position(canvas, iconsize, {x:x, y:y}, zoom)
-    //console.log(newpos)
-
-    return { x: xoffset, y: yoffset };
-  }
-
-  distance(map, mask, ipos, epos, loop) {
-    var nbg = [
-      { x: pos.x - 1, y: pos.y },
-      { x: pos.x + 1, y: pos.y - 1 },
-      { x: pos.x + 1, y: pos.y },
-      { x: pos.x - 1, y: pos.y + 1 },
-      { x: pos.x, y: pos.y + 1 },
-      { x: pos.x, y: pos.y - 1 }
-    ];
-    // if match return loop
-    if (ipos.x === epos.x && ipos.y === epos.y) return loop;
-    // if max loop exit
-    if (loop === 0) return -1;
-    else {
-      var out = 9999;
-      // loop through neigbours
-      for (var n of nbg) {
-        var o = this.distance(map, mask, n, epos, loop - 1);
-        if (out < 0 || o < out) {
-          out = o;
-        }
-      }
-      return out;
-    }
-  }
-}
-
-export default class mappp extends mapTools {
+class mappp extends mapTools {
   // constructor
   constructor(width, heigth) {
     super();
@@ -865,7 +607,244 @@ export default class mappp extends mapTools {
   }
 }
 
-class Map extends React.Component {
+
+
+export class mapIso {
+  // create map instance
+  constructor(maparray) {
+    this._map = [];
+    for (var y = 0; y < maparray.length; y++) {
+      var a = [];
+      for (var x = 0; x < maparray[0].length; x++) {
+        a.push({ type: maparray[y][x], orientation: 0,  construction: null });
+      }
+      this._map.push(a);
+    }
+  }
+
+  get map() {
+    return this._map;
+  }
+
+  // return map position data
+  position(pos) {
+    return this._map[pos.y][pos.x];
+  }
+
+  // create mask array
+  createMask() {
+    var maskarray = [];
+  }
+
+  // create if it does not exist and mask
+  mask(maskarray) {}
+
+  // unmask selected positions
+  unmask(maskarray, pos, range) {
+    var nbg = [pos];
+    nbg.push({ x: pos.x + 1, y: pos.y });
+    nbg.push({ x: pos.x - 1, y: pos.y + 1 });
+    nbg.push({ x: pos.x, y: pos.y + 1 });
+    nbg.push({ x: pos.x - 1, y: pos.y });
+    nbg.push({ x: pos.x + 1, y: pos.y - 1 });
+    nbg.push({ x: pos.x, y: pos.y - 1 });
+
+    for (var p of nbg) {
+      if (!maskarray[p.y][p.x].visible) {
+        maskarray[p.y][p.x].visible = true;
+        maskarray[p.y][p.x].fog = false;
+        maskarray[p.y][p.x].map = {
+          type: array[p.y][p.x].type,
+          orientation: array[p.y][p.x].orientation,
+          construction: { ...array[p.y][p.x] }
+        };
+      }
+      if (range > 1)
+        //&& p.x !== pos.x && p.y !== pos.y)
+        this.mask(array, maskarray, p, range - 1);
+    }
+  }
+
+  //TODO: falta procurar exercito inimigo
+  // check if element in range
+  check(array, pos, match, range) {
+    var minx = pos.x - range >= 0 ? pos.x - range : 0;
+    var miny = pos.y - range >= 0 ? pos.y - range : 0;
+    var maxx =
+      pos.x + range < array[0].length ? pos.x + range : array[0].length - 1;
+    var maxy = pos.y + range < array.length ? pos.y + range : array.length - 1;
+
+    // create floating
+    var floatminx = minx;
+    var floatmaxx = maxx - range;
+    // check if exists any
+    for (var y = miny; y < maxy; y++) {
+      for (var x = minx; x < maxx; x++) {
+        if (
+          x >= floatminx &&
+          x < floatmaxx &&
+          match.includes(array[y][x].value)
+        )
+          return true;
+      }
+      if (x < pos.x) floatmaxx++;
+      else floatminx++;
+    }
+    return false;
+  }
+
+  // return a random position within radius
+  random(array, quadrant, matchtypeof, unmatchtypeof, radius, attempts = 100) {
+    // random position in quadrant
+    for (var k = 0; k < attempts; k++) {
+      var index = Math.trunc(Math.random() * quadrant.width * quadrant.heigth);
+      var x = quadrant.x + Math.trunc(index % quadrant.width);
+      var y = quadrant.y + Math.trunc(index / quadrant.width);
+      // select if position match selection and unmatch radius
+      if (
+        matchtypeof.includes(array[y][x].type) &&
+        !this.check(array, { x: x, y: y }, unmatchtypeof, radius)
+      )
+        return { x: x, y: y };
+    }
+    return null;
+  }
+
+  // return neighbours
+  neighbours(array, pos, match) {
+    return (
+      (match.includes(array[pos.x][pos.y - 1]) ? 0x01 : 0) +
+        (match.includes(array[pos.x + 1][pos.y - 1]) ? 0x02 : 0) +
+        (match.includes(array[pos.x + 1][pos.y]) ? 0x04 : 0) +
+        (match.includes(array[pos.x][pos.y + 1]) ? 0x08 : 0) +
+        (match.includes(array[pos.x - 1][pos.y + 1]) ? 0x10 : 0),
+      match.includes(array[pos.x - 1][pos.y]) ? 0x20 : 0
+    );
+  }
+
+  // display on canvas
+  display(canvas, terrain, iconsize, map, mask, pos, zoom) {
+    // calculate screen max width and heigth
+    var screenMaxY =
+      Math.ceil((2 * canvas.height()) / (1.5 * iconsize.height * zoom)) + 1;
+    var screenMaxX = Math.ceil(canvas.width() / (iconsize.width * zoom));
+
+    // calculate x offset at y=0
+    //var screenOffsetx = Math.ceil(screenMaxX * 0.5 * Math.sqrt(3));
+
+    // calculate initial map positions
+    //var imapx = pos.x + Math.round((screenMaxX + 1 ) * 0.5 - screenMaxX * 0.5 - 1/zoom) - 2;
+    //var imapx = 1
+    //var imapy = pos.y - Math.round((screenMaxY - 1) * 0.5);
+
+    var p = this.position(canvas, iconsize, pos, zoom);
+    var imapx = p.x;
+    var imapy = p.y;
+
+    // loop through y map
+    for (var y = 0; y < screenMaxY; y++) {
+      // define screen positions
+      var posy =
+        y * zoom * iconsize.height * 0.75 - zoom * iconsize.height * 0.5;
+      // loop through x map
+      for (var x = y + 1 - screenMaxX; x < y + screenMaxX + 2; x++) {
+        // if inside canvas
+        if (x >= 0 && y >= 0) {
+          // calculate x position on canvas
+          var posx = (x - (y + 1) * 0.5) * zoom * iconsize.width;
+          // if inside map array
+          if (
+            x + imapx >= 0 &&
+            x + imapx < map[0].length &&
+            y + imapy >= 0 &&
+            y + imapy < map.length
+          ) {
+            // print map tile
+            terrain
+              .icon(map[y + imapy][x + imapx].type)
+              .draw(posx, posy, false, zoom);
+          } else {
+            // print unknown
+            terrain.icon(0).draw(posx, posy, false, zoom);
+          }
+        }
+      }
+      // decrement offset
+      imapx--;
+    }
+  }
+
+  // define position screen zero on map
+  whereis(canvas, iconsize, pos, zoom) {
+    // calculate screen max width and heigth
+    var screenMaxY =
+      Math.ceil((2 * canvas.height()) / (1.5 * iconsize.height * zoom)) + 1;
+    var screenMaxX = Math.ceil(canvas.width() / (iconsize.width * zoom));
+
+    // calculate initial map positions (45º => 0.5 60º => ..)
+    var y = pos.y - Math.round((screenMaxY - 1) * 0.5);
+    var x =
+      pos.x - Math.round(screenMaxX - (screenMaxY * 0.25 + screenMaxX * 0.5));
+
+    return { x: x, y: y };
+  }
+
+  mouse(iconsize, zero, mouse, zoom) {
+    // calculate x position
+    var y =
+      1 +
+      Math.floor(
+        (mouse.y - iconsize.height * zoom * 0.5) /
+          (iconsize.height * zoom * 0.5 * 1.5)
+      );
+    // calculate y position
+    var x = Math.floor(
+      (mouse.x + (y & 0x01 ? 0 : iconsize.width * zoom * 0.5)) /
+        (iconsize.width * zoom)
+    );
+
+    var xoffset = zero.x + Math.round(x - y * 0.5);
+    var yoffset = zero.y + y;
+    //console.log(Math.round(x - (y * 0.5)))
+    //console.log("Zero: (" + zero.x + "," + zero.y + ") center: (" + center.x + "," + center.y + ")");
+    //console.log("mouse: " + x + "," + y + "  offset: " + xoffset + "," + yoffset)
+    //console.log("offset: " + xoffset + "," + yoffset )
+
+    //var newpos = this.position(canvas, iconsize, {x:x, y:y}, zoom)
+    //console.log(newpos)
+
+    return { x: xoffset, y: yoffset };
+  }
+
+  distance(map, mask, ipos, epos, loop) {
+    var nbg = [
+      { x: pos.x - 1, y: pos.y },
+      { x: pos.x + 1, y: pos.y - 1 },
+      { x: pos.x + 1, y: pos.y },
+      { x: pos.x - 1, y: pos.y + 1 },
+      { x: pos.x, y: pos.y + 1 },
+      { x: pos.x, y: pos.y - 1 }
+    ];
+    // if match return loop
+    if (ipos.x === epos.x && ipos.y === epos.y) return loop;
+    // if max loop exit
+    if (loop === 0) return -1;
+    else {
+      var out = 9999;
+      // loop through neigbours
+      for (var n of nbg) {
+        var o = this.distance(map, mask, n, epos, loop - 1);
+        if (out < 0 || o < out) {
+          out = o;
+        }
+      }
+      return out;
+    }
+  }
+}
+
+
+export default class Map extends React.Component {
   constructor() {
     this.state.screen = {
       width: window.width,

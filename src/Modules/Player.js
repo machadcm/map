@@ -1,3 +1,6 @@
+//import {mapIso} from "./Map.js"
+
+
 export default class Player {
   // constructor
   constructor(playerid, name, human, tribe, map, cities, armies) {
