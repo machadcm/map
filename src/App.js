@@ -30,8 +30,6 @@ export default class App extends React.Component {
   }
 
   handleCallback(data) {
-    console.log("handleCallBack@Menu");
-    console.log(data);
     switch (data.selection) {
       case "new":
         this.setState({ selection: "build" });
@@ -41,7 +39,6 @@ export default class App extends React.Component {
         break;
       case "build":
         this.setState({ selection: "game", config: data.config });
-        console.log(this.state);
         break;
       default:
         break;
@@ -57,6 +54,7 @@ export default class App extends React.Component {
           <Build config={this.state.config} useCallback={this.handleCallback} />
         );
       case "game": // start game
+       console.log("Start game..")
         return (
           <Game data={this.state.config} useCallback={this.handleCallback} />
         );

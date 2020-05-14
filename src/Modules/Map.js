@@ -846,11 +846,11 @@ export class mapIso {
 
 export default class Map extends React.Component {
   constructor() {
-    this.state.screen = {
+    this.state = { screen: {
       width: window.width,
       height: window.height,
       ratio: window.devicePixelRatio || 1
-    };
+    }};
   }
 
   render() {

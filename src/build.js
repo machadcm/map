@@ -1,6 +1,6 @@
 import React from "react";
-import {mapIso} from "./Modules/Map.js"
-import Player from "./Modules/Player.js"
+import { mapIso } from "./Modules/Map.js";
+import Player from "./Modules/Player.js";
 
 const mapsize = {
   small: { width: 100, height: 100 },
@@ -116,10 +116,10 @@ class mapCreation {
       var a = [],
         b = [];
       for (var x = 0; x < this._halfmap[0].length; x++) {
-        a.push( this._halfmap[y][x] );
-        a.push( this._halfmap[y][x] );
-        b.push( this._halfmap[y][x] );
-        b.push( this._halfmap[y][x] );
+        a.push(this._halfmap[y][x]);
+        a.push(this._halfmap[y][x]);
+        b.push(this._halfmap[y][x]);
+        b.push(this._halfmap[y][x]);
       }
       this._map.push(a);
       this._map.push(b);
@@ -129,7 +129,10 @@ class mapCreation {
     for (x = 0; x < this._width; x++)
       for (y = 0; y < this._heigth; y++) {
         if (
-          [ terrainType.florest, terrainType.hills, terrainType.mountains
+          [
+            terrainType.florest,
+            terrainType.hills,
+            terrainType.mountains
           ].includes(this._map[x][y]) &&
           Math.round(Math.random() * 100) > 70
         )
@@ -181,29 +184,43 @@ export default class Build extends React.Component {
         // Add players
         this._config.map = new mapIso(this._map.map);
 
-        let human = Math.round(Math.random() * (this._config.playernum - 1))
-        for(let p = 0; p < this._config.playernum; p++)
-          if( p === human ) {
+        let human = Math.round(Math.random() * (this._config.playernum - 1));
+        for (let p = 0; p < this._config.playernum; p++)
+          if (p === human) {
             this._config.players.push(
-              new Player(p, this.props.name, true, this.props.tribe,
-                         this._config.map, this._config.cities, this._config.armies)
+              new Player(
+                p,
+                this.props.name,
+                true,
+                this.props.tribe,
+                this._config.map,
+                this._config.cities,
+                this._config.armies
+              )
             );
           } else
             this._config.players.push(
-              new Player(p, null, false, null,
-                         this._config.map, this._config.cities, this._config.armies)
+              new Player(
+                p,
+                null,
+                false,
+                null,
+                this._config.map,
+                this._config.cities,
+                this._config.armies
+              )
             );
-        xxx
-
         break;
       case 5:
         // Add cities
         break;
       case 6:
       default:
-        console.log(this._config)
         // return config
-        this.props.useCallback({ selection: "game", config: { ...this._config } });
+        this.props.useCallback({
+          selection: "build",
+          config: { ...this._config }
+        });
         break;
     }
     // change flow state
@@ -216,7 +233,10 @@ export default class Build extends React.Component {
     if (this.state.flow === 0) {
       this._config.playernum = this.props.config.playernum;
       this._config.mapsize = mapsize[this.props.config.mapsize];
-      this._map = new mapCreation(this._config.mapsize, this.props.config.ratio);
+      this._map = new mapCreation(
+        this._config.mapsize,
+        this.props.config.ratio
+      );
       //this.setState({flow: 1})
     }
     return (

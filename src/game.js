@@ -18,24 +18,30 @@ class Screen extends React.Component {
         width: window.innerWidth,
         height: window.innerHeight,
         ratio: window.devicePixelRatio || 1
-      }
+      },
+      player: 0
     };
+    this.data = null;
   }
 
   // set up triggers
   componentDidMount() {
     // set up triggers
-    window.addEventListener("resize", this.handleResize.bind(this));
+    // window.addEventListener("resize", this.handleResize.bind(this));
     // save canvas context
-    this.setState({ context: this.refs.canvas.getContext("2d") });
+    // this.setState({ context: this.refs.canvas.getContext("2d") });
   }
 
+  /*
   // remove triggers
   componentWillUnmount() {
-    window.removeEventListener("resize", this.handleResize);
+   window.removeEventListener("resize", this.handleResize);
   }
 
-  componentDidUpdate() {}
+  componentDidUpdate() {
+    this.player[this.state.player].turn();
+  }
+  */
 
   // handle screen resize
   handleResize() {
@@ -49,17 +55,26 @@ class Screen extends React.Component {
   }
 
   render() {
-    return null;
+    console.log("Player");
+    //this.setState({ player: this.props.player });
+    this.player = this.props.player;
     /*
+    if (this.player.human) {
+      return "player: " + this.props.player.id;
+    } else {
+      return "not humman";
+    }
+*/
+    const canvasRef = React.createRef(null);
     return (
       <div>
-        <canvas ref="canvas" 
+        <canvas
+          ref={canvasRef}
           width={this.state.screen.width * this.state.screen.devicePixelRatio}
-          height={this.state.screen.height * this.state.screen.devicePixelRatio} 
+          height={this.state.screen.height * this.state.screen.devicePixelRatio}
         />
       </div>
     );
-    */
   }
 }
 
@@ -74,23 +89,33 @@ class Footer extends React.Component {
 export default class Game extends React.Component {
   constructor() {
     super();
-    this.state = { selection: 0, config: null };
+    this.state = { player: 0 };
     this.handleCallback = this.handleCallback.bind(this);
   }
 
-  handleCallback() {}
+  componentDidMount() {}
+
+  componentDidUpdate() {}
+
+  handleCallback(status) {
+    if (status === "endturn") {
+      // if end turn increment player
+      this.setState({
+        player: (this.state.player + 1) % this.props.data.playernum
+      });
+    }
+  }
 
   render() {
     console.log(this.props);
-    return <div>GAME</div>;
-    /*
+    //return <div>GAME</div>;
+
     return (
       <>
         <Header />
-        <Screen />
+        <Screen player={this.props.data.players[this.state.player]} />
         <Footer />
       </>
     );
-    */
   }
 }
