@@ -28,6 +28,8 @@ export default class Player {
     this._capital = city;
   }
 
+  get human() { return(this._human); }
+
   // define map mask
   mask() {
     // reset map mask (active to idle)

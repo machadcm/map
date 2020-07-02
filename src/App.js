@@ -40,6 +40,8 @@ export default class App extends React.Component {
       case "build":
         this.setState({ selection: "game", config: data.config });
         break;
+      case 'exit':
+        break;
       default:
         break;
     }
